@@ -129,7 +129,7 @@ namespace ICSharpCode.Decompiler.IL.ControlFlow
 					context.Step("Inline variable in return block", block);
 					inst.AddILRange(ret.Value);
 					inst.AddILRange(block.Instructions[0]);
-					ret.Value = inst;
+					ret.Value = ILInlining.GetTruncatedValue(v, inst, context);
 					block.Instructions.RemoveAt(0);
 				}
 			}

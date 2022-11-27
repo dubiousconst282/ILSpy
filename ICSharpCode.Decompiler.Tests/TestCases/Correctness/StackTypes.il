@@ -23,6 +23,7 @@ extends [mscorlib]System.Object
     call void Program::InlineAssignByte()
     call void Program::Int32OrNativeTests()
     call void Program::ByRefInstanceCallWithTypeMismatchTests()
+    call void Program::ImplicitStoreTruncationTests();
 
     ret
   } // end of method Main
@@ -321,6 +322,68 @@ pointless:
     ldloca.s 0
     constrained. [mscorlib]System.Boolean
     callvirt instance string [mscorlib]System.Object::ToString()
+    ret
+  }
+  
+  .method public hidebysig static void ImplicitStoreTruncationTests()
+  {
+    .locals (uint16 tmp)
+
+    ldstr "ImplicitTruncateStloc(1234567) = {0}"
+    ldc.i4 1234567
+    call int32 Program::ImplicitTruncateStloc(int32)
+    box int32
+    call void [mscorlib]System.Console::WriteLine(string, object)
+    
+    ldstr "ImplicitTruncateStindLocal(1234567) = {0}"
+    ldc.i4 1234567
+    call int32 Program::ImplicitTruncateStindLocal(int32)
+    box int32
+    call void [mscorlib]System.Console::WriteLine(string, object)
+
+    ldstr "ImplicitTruncateStarg(1234567) = {0}"
+    ldc.i4 1234567
+    ldc.i4 0
+    call int32 Program::ImplicitTruncateStarg(int32, uint16)
+    box int32
+    call void [mscorlib]System.Console::WriteLine(string, object)
+
+    ldstr "ImplicitTruncateInlineStloc(1234567) = {0}"
+    ldc.i4 1234567
+    stloc tmp
+    ldloc tmp
+    box int32
+    call void [mscorlib]System.Console::WriteLine(string, object)
+
+    ret
+  }
+  
+  .method public hidebysig static int32 ImplicitTruncateStloc(int32 x)
+  {
+    .locals (uint16 tmp)
+
+    ldarg x
+    stloc tmp
+    ldloc tmp
+    ret
+  }
+  .method public hidebysig static int32 ImplicitTruncateStindLocal(int32 x)
+  {
+    .locals (uint16 tmp)
+    
+    ldloca tmp
+    ldarg x
+    stind.i2
+    
+    ldloca tmp
+    ldind.u2
+    ret
+  }
+  .method public hidebysig static int32 ImplicitTruncateStarg(int32 x, uint16 tmp)
+  {
+    ldarg x
+    starg tmp
+    ldarg tmp
     ret
   }
 }

@@ -179,10 +179,6 @@ namespace ICSharpCode.Decompiler.IL.Transforms
 				return false;
 			if (v.LoadCount > 1 || v.LoadCount + v.AddressCount != 1)
 				return false;
-			// TODO: inlining of small integer types might be semantically incorrect,
-			// but we can't avoid it this easily without breaking lots of tests.
-			//if (v.Type.IsSmallIntegerType())
-			//	return false; // stloc might perform implicit truncation
 			return InlineOne(stloc, options, context);
 		}
 
@@ -277,11 +273,22 @@ namespace ICSharpCode.Decompiler.IL.Transforms
 				}
 				else
 				{
-					loadInst.ReplaceWith(inlinedExpression);
+					loadInst.ReplaceWith(GetTruncatedValue(v, inlinedExpression, context));
 				}
 				return true;
 			}
 			return false;
+		}
+
+		internal static ILInstruction GetTruncatedValue(ILVariable var, ILInstruction value, ILTransformContext context)
+		{
+			if (TransformAssignment.IsImplicitTruncation(value, var.Type, context?.TypeSystem))
+			{
+				// ToPrimitiveType() returns None for Boolean, but it is actually represented as an U1 in memory locations.
+				var targetType = var.Type.IsKnownType(KnownTypeCode.Boolean) ? PrimitiveType.U1 : var.Type.ToPrimitiveType();
+				return new Conv(value, targetType, false, Sign.None);
+			}
+			return value;
 		}
 
 		/// <summary>
